@@ -1,1 +1,4 @@
 REMOVE ME PLEASE
+Test 1 <- Override conflicted file
+Conflict line 1
+Conflict line 2

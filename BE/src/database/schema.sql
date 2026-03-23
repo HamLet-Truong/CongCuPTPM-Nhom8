@@ -42,6 +42,7 @@ CREATE TABLE nha_hang (
         'TU_CHOI'
     ) DEFAULT 'CHO_DUYET',
 
+    is_active BOOLEAN DEFAULT 1 COMMENT 'Bật tắt hoạt động nhận đơn',
     ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -80,6 +81,7 @@ CREATE TABLE shipper (
         'BI_KHOA'
     ) DEFAULT 'CHO_DUYET',
 
+    is_active BOOLEAN DEFAULT 1 COMMENT 'Bật tắt hoạt động nhận đơn',
     ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

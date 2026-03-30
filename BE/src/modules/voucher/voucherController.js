@@ -1,33 +1,27 @@
 const voucherService = require('./voucherService');
 const { validateCreateVoucher, validateApplyVoucher } = require('./voucherValidation');
+const { successResponse, errorResponse } = require('../../utils/response');
 
 class VoucherController {
     // Lấy danh sách tất cả voucher
     // GET/api/vouchers
-    async listVouchers(req, res) {
+    async listVouchers(req, res, next) {
         try {
             // Gọi service để lấy dữ liệu
             const result = await voucherService.getAllVouchers();
 
             // Trả về response thành công
-            res.json({
-                status: 'success',
-                data: result.data,
-                message: 'Lấy danh sách voucher thành công'
-            });
+            return successResponse(res, result.data, 200);
         } catch (error) {
             // Nếu có lỗi trả về error
-            res.status(500).json({
-                status: 'error',
-                message: 'Lỗi khi lấy danh sách voucher'
-            });
+            return next(error);
         }
     }
 
     // Tạo mới voucher
     // POST/api/admin/vouchers
 
-    async createVoucher(req, res) {
+    async createVoucher(req, res, next) {
         try {
             // Kiểm tra dữ liệu từ client
             const { error, value } = validateCreateVoucher(req.body);
@@ -36,35 +30,24 @@ class VoucherController {
             if (error) {
                 // Lấy danh sách lỗi và gửi về client
                 const details = error.details.map(d => d.message);
-                return res.status(400).json({
-                    status: 'error',
-                    message: 'Dữ liệu không hợp lệ',
-                    details
-                });
+                return errorResponse(res, `Dữ liệu không hợp lệ: ${details.join(', ')}`, 400);
             }
 
             // Nếu dữ liệu hợp lệ gọi service để tạo voucher
             const result = await voucherService.createVoucher(value);
 
             // Trả về response thành công
-            res.status(201).json({
-                status: 'success',
-                data: result.data,
-                message: 'Tạo voucher thành công'
-            });
+            return successResponse(res, result.data, 201);
         } catch (error) {
             // Nếu có lỗi trả về error
-            res.status(400).json({
-                status: 'error',
-                message: 'Lỗi khi tạo voucher'
-            });
+            return next(error);
         }
     }
 
     // Kiểm tra mã voucher có hợp lệ không
     // POST/api/vouchers/validate
 
-    async validateVoucher(req, res) {
+    async validateVoucher(req, res, next) {
         try {
             // Kiểm tra dữ liệu từ client
             const { error, value } = validateApplyVoucher(req.body);
@@ -73,35 +56,24 @@ class VoucherController {
             if (error) {
                 // Lấy danh sách lỗi và gửi về client
                 const details = error.details.map(d => d.message);
-                return res.status(400).json({
-                    status: 'error',
-                    message: 'Dữ liệu không hợp lệ',
-                    details
-                });
+                return errorResponse(res, `Dữ liệu không hợp lệ: ${details.join(', ')}`, 400);
             }
 
             // Nếu dữ liệu hợp lệ gọi service để kiểm tra voucher
             const result = await voucherService.validateVoucher(value.ma);
 
             // Trả về response thành công
-            res.json({
-                status: 'success',
-                data: result.data,
-                message: 'Mã voucher hợp lệ'
-            });
+            return successResponse(res, result.data, 200);
         } catch (error) {
             // Nếu có lỗi trả về error
-            res.status(400).json({ 
-                status: 'error',
-                message: error.message || 'Mã voucher không hợp lệ'
-            });
+            return next(error);
         }
     }
 
     // Lấy chi tiết voucher theo id
     // GET/api/vouchers/:id
 
-    async getVoucherDetail(req, res) {
+    async getVoucherDetail(req, res, next) {
         try {
             // Lấy id từ URL
             const { id } = req.params;
@@ -110,24 +82,17 @@ class VoucherController {
             const result = await voucherService.getVoucherDetail(id);
 
             // Trả về response thành công
-            res.json({
-                status: 'success',
-                data: result.data,
-                message: 'Lấy chi tiết voucher thành công'
-            });
+            return successResponse(res, result.data, 200);
         } catch (error) {
             // Nếu có lỗi trả về error
-            res.status(404).json({
-                status: 'error',
-                message: 'Voucher không tồn tại'
-            });
+            return next(error);
         }
     }
 
     // Xóa voucher 
     // DELETE/api/admin/vouchers/:id
 
-    async deleteVoucher(req, res) {
+    async deleteVoucher(req, res, next) {
         try {
             // Lấy id từ URL
             const { id } = req.params;
@@ -136,17 +101,10 @@ class VoucherController {
             const result = await voucherService.deleteVoucher(id);
 
             // Trả về response thành công
-            res.json({
-                status: 'success',
-                data: result.data,
-                message: 'Xóa voucher thành công'
-            });
+            return successResponse(res, { message: 'Xóa voucher thành công' }, 200);
         } catch (error) {
             // Nếu có lỗi trả về error
-            res.status(404).json({
-                status: 'error',
-                message: 'Voucher không tồn tại'
-            });
+            return next(error);
         }
     }
 }

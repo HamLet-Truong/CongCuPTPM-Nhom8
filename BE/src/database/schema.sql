@@ -25,6 +25,7 @@ CREATE TABLE dia_chi (
     nguoi_dung_id INT NOT NULL,
     dia_chi TEXT NOT NULL,
     mac_dinh BOOLEAN DEFAULT 0,
+    is_active BOOLEAN DEFAULT 1,
     FOREIGN KEY (nguoi_dung_id) REFERENCES nguoi_dung(id) ON DELETE CASCADE
 );
 

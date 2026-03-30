@@ -250,6 +250,53 @@ Authorization: Bearer {{restaurant_token}}
 
 ---
 
+### 2.4 Quản lý Người Dùng và Địa Chỉ Giao Hàng
+
+**Lưu ý:** Role là `USER`. Vui lòng dùng token đăng nhập của người dùng.
+
+#### A. Lấy thông tin tài khoản
+```text
+GET {{base_url}}/v1/users/me
+```
+**Headers:** `Authorization: Bearer {{token}}`
+
+#### B. Thêm địa chỉ mới
+```text
+POST {{base_url}}/v1/addresses
+```
+**Headers:** `Authorization: Bearer {{token}}`
+**Body:**
+```json
+{
+  "dia_chi": "123 Quận 1, TPHCM",
+  "mac_dinh": true
+}
+```
+
+#### C. Lấy danh sách địa chỉ
+```text
+GET {{base_url}}/v1/addresses
+```
+
+#### D. Cập nhật địa chỉ
+```text
+PUT {{base_url}}/v1/addresses/1
+```
+**Body:**
+```json
+{
+  "dia_chi": "123 Quận 1, TPHCM",
+  "mac_dinh": false
+}
+```
+
+#### E. Xoá địa chỉ (xoá mềm)
+```text
+DELETE {{base_url}}/v1/addresses/1
+```
+
+---
+
 ## Test Script Tips
 
 ### 1. Tự động lưu token sau khi login

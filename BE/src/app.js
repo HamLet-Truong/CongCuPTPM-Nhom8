@@ -6,7 +6,7 @@ const prisma = require("./config/prisma");
 
 const app = express();
 
-// Middleware
+// Khai báo middleware dùng chung.
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -30,7 +30,7 @@ app.get("/health", async (req, res) => {
   }
 });
 
-// Default route
+// Endpoint mặc định của ứng dụng.
 app.get("/", (req, res) => {
   res.json({ message: "API is running..." });
 });
@@ -46,6 +46,7 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err, req, res, next) => {
+  console.error("Error:", err);
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Lỗi server nội bộ"

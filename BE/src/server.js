@@ -9,7 +9,7 @@ const startServer = async () => {
     await prisma.$connect();
     console.log("✓ Kết nối Database thành công");
 
-    // Start server
+    // Khởi chạy server sau khi kết nối DB thành công.
     app.listen(PORT, () => {
       console.log(`✓ Server chạy trên cổng ${PORT}`);
       console.log(`✓ Môi trường: ${process.env.NODE_ENV || "development"}`);

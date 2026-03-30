@@ -35,7 +35,7 @@ class VoucherController {
             // Nếu không hợp lệ trả về lỗi
             if (error) {
                 // Lấy danh sách lỗi và gửi về client
-                const details = error.datails.map(d => d.message);
+                const details = error.details.map(d => d.message);
                 return res.status(400).json({
                     status: 'error',
                     message: 'Dữ liệu không hợp lệ',
@@ -72,7 +72,7 @@ class VoucherController {
             // Nếu không hợp lệ trả về lỗi
             if (error) {
                 // Lấy danh sách lỗi và gửi về client
-                const details = error.datails.map(d => d.message);
+                const details = error.details.map(d => d.message);
                 return res.status(400).json({
                     status: 'error',
                     message: 'Dữ liệu không hợp lệ',
@@ -107,7 +107,7 @@ class VoucherController {
             const { id } = req.params;
 
             // Gọi service để lấy chi tiết voucher
-            const result = await voucherService.getVoucherById(id);
+            const result = await voucherService.getVoucherDetail(id);
 
             // Trả về response thành công
             res.json({

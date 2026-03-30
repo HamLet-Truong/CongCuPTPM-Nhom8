@@ -8,6 +8,7 @@ const { foodRoutes } = require("../modules/food");
 const reviewRoutes = require("../modules/review/review.routes");
 const { cartRoutes } = require("../modules/cart");
 const { shipperRoutes } = require("../modules/shipper");
+const { publicRouter: voucherPublicRoutes, adminRouter: voucherAdminRoutes } = require("../modules/voucher/voucherRoutes");
 
 // Health check
 router.get("/health", (req, res) => {
@@ -28,5 +29,9 @@ router.use("/v1/cart", cartRoutes);
 
 // Shipper
 router.use("/v1/shipper", shipperRoutes);
+
+// Voucher
+router.use("/v1/vouchers", voucherPublicRoutes);
+router.use("/v1/admin/vouchers", voucherAdminRoutes);
 
 module.exports = router;

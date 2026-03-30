@@ -18,7 +18,7 @@ class VoucherService {
             };
         } catch (error) {
             // Nếu có lỗi, trả về lỗi
-            throw new Error('Lỗi khi lấy danh sách voucher:  ${error.message}');
+            throw new Error(`Lỗi khi lấy danh sách voucher: ${error.message}`);
         }
     }
 
@@ -39,7 +39,7 @@ class VoucherService {
             }
 
             // Gọi repository để tạo voucher mới
-            const newVoucher = await voucherRepository.create(data);
+            const newVoucher = await voucherRepository.createVoucher(data);
 
             // Trả về kết quả
             return {
@@ -114,7 +114,7 @@ class VoucherService {
                 throw new Error('Voucher không tồn tại');
             }  
             // Nếu voucher tồn tại, tiến hành xóa
-            await voucherRepository.delete(id);
+            await voucherRepository.deleteVoucher(id);
 
             // Trả về kết quả
             return {

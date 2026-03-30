@@ -1,21 +1,18 @@
 const express = require('express');
-const router = express.Router();
 const voucherController = require('./voucherController');
 const { authenticate, authorize } = require('../../middlewares/auth.middleware');
 
+// Public routes: GET /vouchers
+const publicRouter = express.Router();
+publicRouter.get('/', voucherController.listVouchers);
+publicRouter.post('/validate', voucherController.validateVoucher);
+publicRouter.get('/:id', voucherController.getVoucherDetail);
 
-router.get('/', voucherController.listVouchers);
+// Admin routes: POST /admin/vouchers (chỉ Admin)
+const adminRouter = express.Router();
+adminRouter.use(authenticate);
+adminRouter.use(authorize('ADMIN'));
+adminRouter.post('/', voucherController.createVoucher);
+adminRouter.delete('/:id', voucherController.deleteVoucher);
 
-
-router.post('/validate', voucherController.validateVoucher);
- 
-
-router.get('/:id', voucherController.getVoucherDetail);
-
-
-router.post('/admin', authenticate, authorize('ADMIN'), voucherController.createVoucher);
-
-
-router.delete('/admin/:id', authenticate, authorize('ADMIN'), voucherController.deleteVoucher);
-
-module.exports = router;
+module.exports = { publicRouter, adminRouter };

@@ -5,54 +5,56 @@ const cors = require("cors");
 const app = express();
 
 const pool = require("./database/connection");
+const { errorResponse } = require("./utils/response");
 
-// Middleware
+// Khai báo middleware dùng chung.
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Test database connection
+// Endpoint kiểm tra trạng thái server + database.
 app.get("/health", async (req, res) => {
   try {
     const connection = await pool.getConnection();
     await connection.ping();
     connection.release();
-    res.json({ 
-      status: "OK", 
-      message: "Server và Database đang chạy bình thường",
-      timestamp: new Date().toISOString()
+    res.json({
+      success: true,
+      data: {
+        status: "OK",
+        message: "Server và Database đang chạy bình thường",
+        timestamp: new Date().toISOString(),
+      },
     });
   } catch (error) {
     console.error("Database connection error:", error);
-    res.status(500).json({ 
-      status: "ERROR", 
-      message: "Không thể kết nối Database",
-      error: error.message
-    });
+    return errorResponse(res, "Không thể kết nối Database", 500);
   }
 });
 
-// Default route
+// Endpoint mặc định của ứng dụng.
 app.get("/", (req, res) => {
-  res.json({ message: "API is running..." });
+  res.json({
+    success: true,
+    data: {
+      message: "API is running...",
+    },
+  });
 });
 
-// Mount routes
+// Gắn router tổng vào tiền tố /api.
 const routes = require("./routes");
 app.use("/api", routes);
 
-// 404 handler
+// Bộ xử lý khi không tìm thấy route.
 app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
+  return errorResponse(res, "Route not found", 404);
 });
 
-// Error handler
+// Bộ xử lý lỗi tập trung toàn ứng dụng.
 app.use((err, req, res, next) => {
   console.error("Error:", err);
-  res.status(err.status || 500).json({
-    message: err.message || "Internal Server Error",
-    status: err.status || 500
-  });
+  return errorResponse(res, err.message || "Internal Server Error", err.status || 500);
 });
 
 module.exports = app;

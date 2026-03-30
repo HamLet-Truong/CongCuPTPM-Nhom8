@@ -3,15 +3,15 @@ const pool = require("./database/connection");
 
 const PORT = process.env.PORT || 3000;
 
-// Function to start server
+// Hàm khởi động server và kiểm tra kết nối cơ sở dữ liệu trước khi lắng nghe cổng.
 const startServer = async () => {
   try {
-    // Test database connection
+    // Kiểm tra kết nối database để phát hiện lỗi cấu hình sớm.
     const connection = await pool.getConnection();
     console.log("✓ Kết nối Database thành công");
     connection.release();
 
-    // Start server
+    // Khởi chạy server sau khi kết nối DB thành công.
     app.listen(PORT, () => {
       console.log(`✓ Server chạy trên cổng ${PORT}`);
       console.log(`✓ Môi trường: ${process.env.NODE_ENV || "development"}`);

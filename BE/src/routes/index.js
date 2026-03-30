@@ -1,10 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-// Import routes modules (sẽ tạo sau)
-// const userRoutes = require("./users");
-// const restaurantRoutes = require("./restaurants");
-// const orderRoutes = require("./orders");
+// Import routes modules
+const { authRoutes } = require("../modules/auth");
 
 // Health check
 router.get("/health", (req, res) => {
@@ -12,8 +10,6 @@ router.get("/health", (req, res) => {
 });
 
 // Mount routes
-// router.use("/users", userRoutes);
-// router.use("/restaurants", restaurantRoutes);
-// router.use("/orders", orderRoutes);
+router.use("/v1/auth", authRoutes);
 
 module.exports = router;

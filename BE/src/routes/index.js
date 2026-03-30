@@ -7,6 +7,7 @@ const restaurantRoutes = require("../modules/restaurant/restaurant.routes");
 const { foodRoutes } = require("../modules/food");
 const reviewRoutes = require("../modules/review/review.routes");
 const { cartRoutes } = require("../modules/cart");
+const { shipperRoutes } = require("../modules/shipper");
 
 // Health check
 router.get("/health", (req, res) => {
@@ -24,5 +25,8 @@ router.use("/reviews", reviewRoutes);
 
 // Cart
 router.use("/v1/cart", cartRoutes);
+
+// Shipper
+router.use("/v1/shipper", shipperRoutes);
 
 module.exports = router;

@@ -6,7 +6,7 @@ const voucherRepository = require('./voucherRepository');
 
 class VoucherService {
     // Lấy tất cả voucher
-    async gitAllVouchers() {
+    async getAllVouchers() {
         try {
             // Gọi repository để lấy dữ liệu
             const vouchers = await voucherRepository.findAll();

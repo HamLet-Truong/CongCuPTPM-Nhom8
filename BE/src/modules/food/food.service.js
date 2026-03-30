@@ -1,6 +1,32 @@
+const Joi = require("joi");
 const foodRepository = require("./food.repository");
 
 class FoodService {
+  // Validation schemas
+  createFoodSchema = Joi.object({
+    ten: Joi.string().required().messages({
+      "string.empty": "Tên món ăn không được để trống",
+      "any.required": "Tên món ăn là bắt buộc"
+    }),
+    gia: Joi.number().positive().required().messages({
+      "number.base": "Giá phải là số",
+      "number.positive": "Giá phải lớn hơn 0",
+      "any.required": "Giá là bắt buộc"
+    })
+  });
+
+  updateFoodSchema = Joi.object({
+    ten: Joi.string().messages({
+      "string.empty": "Tên món ăn không được để trống"
+    }),
+    gia: Joi.number().positive().messages({
+      "number.base": "Giá phải là số",
+      "number.positive": "Giá phải lớn hơn 0"
+    })
+  }).min(1).messages({
+    "object.min": "Phải cập nhật ít nhất một trường"
+  });
+
   async getAllFoods(nhaHangId) {
     return await foodRepository.findAll(nhaHangId);
   }
@@ -16,14 +42,16 @@ class FoodService {
   }
 
   async createFood(nhaHangId, data) {
-    if (!data.ten || data.gia === undefined) {
-      const error = new Error("Tên món ăn và giá là bắt buộc");
-      error.status = 400;
-      throw error;
+    // Validate input
+    const { error, value } = this.createFoodSchema.validate(data, { abortEarly: false });
+    if (error) {
+      const validationError = new Error(error.details.map(d => d.message).join(", "));
+      validationError.status = 400;
+      throw validationError;
     }
 
     const payload = {
-      ...data,
+      ...value,
       nha_hang_id: nhaHangId
     };
 
@@ -40,7 +68,15 @@ class FoodService {
       throw error;
     }
 
-    return await foodRepository.update(id, data);
+    // Validate input
+    const { error, value } = this.updateFoodSchema.validate(data, { abortEarly: false });
+    if (error) {
+      const validationError = new Error(error.details.map(d => d.message).join(", "));
+      validationError.status = 400;
+      throw validationError;
+    }
+
+    return await foodRepository.update(id, value);
   }
 
   async deleteFood(nhaHangId, id) {

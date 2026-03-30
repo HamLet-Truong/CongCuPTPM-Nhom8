@@ -1,2 +1,0 @@
-Phần 3 bài tập push và commit lần 1
-- Update commit lần 2

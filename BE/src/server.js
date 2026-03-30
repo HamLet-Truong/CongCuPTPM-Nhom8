@@ -1,15 +1,13 @@
 const app = require("./app");
-const pool = require("./database/connection");
+const prisma = require("./config/prisma");
 
 const PORT = process.env.PORT || 3000;
 
-// Hàm khởi động server và kiểm tra kết nối cơ sở dữ liệu trước khi lắng nghe cổng.
 const startServer = async () => {
   try {
-    // Kiểm tra kết nối database để phát hiện lỗi cấu hình sớm.
-    const connection = await pool.getConnection();
+    // Test Prisma connection
+    await prisma.$connect();
     console.log("✓ Kết nối Database thành công");
-    connection.release();
 
     // Khởi chạy server sau khi kết nối DB thành công.
     app.listen(PORT, () => {
@@ -21,7 +19,7 @@ const startServer = async () => {
     console.error("✗ Lỗi khởi động server:", error.message);
     console.error("✗ Vui lòng kiểm tra:");
     console.error("  - MySQL server đang chạy không?");
-    console.error("  - Cấu hình database trong .env có đúng không?");
+    console.error("  - DATABASE_URL trong .env có đúng không?");
     process.exit(1);
   }
 };

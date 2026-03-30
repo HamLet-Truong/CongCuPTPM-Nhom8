@@ -1,0 +1,245 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model chi_tiet_don_hang {
+  id          Int      @id @default(autoincrement())
+  don_hang_id Int
+  mon_an_id   Int
+  so_luong    Int
+  gia         Decimal  @db.Decimal(10, 2)
+  don_hang    don_hang @relation(fields: [don_hang_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "chi_tiet_don_hang_ibfk_1")
+  mon_an      mon_an   @relation(fields: [mon_an_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "chi_tiet_don_hang_ibfk_2")
+
+  @@index([don_hang_id], map: "don_hang_id")
+  @@index([mon_an_id], map: "mon_an_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model danh_gia {
+  id            Int        @id @default(autoincrement())
+  nguoi_dung_id Int
+  nha_hang_id   Int
+  don_hang_id   Int
+  diem          Int
+  binh_luan     String?    @db.Text
+  nguoi_dung    nguoi_dung @relation(fields: [nguoi_dung_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "danh_gia_ibfk_1")
+  nha_hang      nha_hang   @relation(fields: [nha_hang_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "danh_gia_ibfk_2")
+  don_hang      don_hang   @relation(fields: [don_hang_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "danh_gia_ibfk_3")
+
+  @@index([don_hang_id], map: "don_hang_id")
+  @@index([nguoi_dung_id], map: "nguoi_dung_id")
+  @@index([nha_hang_id], map: "nha_hang_id")
+}
+
+model dia_chi {
+  id            Int        @id @default(autoincrement())
+  nguoi_dung_id Int
+  dia_chi       String     @db.Text
+  mac_dinh      Boolean?   @default(false)
+  nguoi_dung    nguoi_dung @relation(fields: [nguoi_dung_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "dia_chi_ibfk_1")
+  don_hang      don_hang[]
+
+  @@index([nguoi_dung_id], map: "nguoi_dung_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model don_hang {
+  id                     Int                             @id @default(autoincrement())
+  nguoi_dung_id          Int
+  nha_hang_id            Int
+  shipper_id             Int?
+  dia_chi_id             Int
+  voucher_id             Int?
+  tong_tien              Decimal                         @db.Decimal(12, 2)
+  phuong_thuc_thanh_toan don_hang_phuong_thuc_thanh_toan
+  trang_thai             don_hang_trang_thai?            @default(DA_TAO)
+  ngay_tao               DateTime?                       @default(now()) @db.Timestamp(0)
+  chi_tiet_don_hang      chi_tiet_don_hang[]
+  danh_gia               danh_gia[]
+  nguoi_dung             nguoi_dung                      @relation(fields: [nguoi_dung_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "don_hang_ibfk_1")
+  nha_hang               nha_hang                        @relation(fields: [nha_hang_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "don_hang_ibfk_2")
+  shipper                shipper?                        @relation(fields: [shipper_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "don_hang_ibfk_3")
+  dia_chi                dia_chi                         @relation(fields: [dia_chi_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "don_hang_ibfk_4")
+  voucher                voucher?                        @relation(fields: [voucher_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "don_hang_ibfk_5")
+  thanh_toan             thanh_toan[]
+
+  @@index([dia_chi_id], map: "dia_chi_id")
+  @@index([shipper_id], map: "idx_don_hang_shipper")
+  @@index([nguoi_dung_id], map: "idx_don_hang_user")
+  @@index([nha_hang_id], map: "nha_hang_id")
+  @@index([voucher_id], map: "voucher_id")
+}
+
+model giao_dich {
+  id             Int                      @id @default(autoincrement())
+  loai_doi_tuong giao_dich_loai_doi_tuong
+  chu_so_huu_id  Int
+  so_tien        Decimal                  @db.Decimal(12, 2)
+  loai           giao_dich_loai
+  ngay_tao       DateTime?                @default(now()) @db.Timestamp(0)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model gio_hang {
+  id            Int        @id @default(autoincrement())
+  nguoi_dung_id Int
+  mon_an_id     Int
+  so_luong      Int
+  nguoi_dung    nguoi_dung @relation(fields: [nguoi_dung_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "gio_hang_ibfk_1")
+  mon_an        mon_an     @relation(fields: [mon_an_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "gio_hang_ibfk_2")
+
+  @@unique([nguoi_dung_id, mon_an_id], map: "nguoi_dung_id")
+  @@index([mon_an_id], map: "mon_an_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model mon_an {
+  id                Int                 @id @default(autoincrement())
+  ten               String              @db.VarChar(255)
+  gia               Decimal             @db.Decimal(10, 2)
+  nha_hang_id       Int
+  chi_tiet_don_hang chi_tiet_don_hang[]
+  gio_hang          gio_hang[]
+  nha_hang          nha_hang            @relation(fields: [nha_hang_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "mon_an_ibfk_1")
+
+  @@index([nha_hang_id], map: "idx_mon_an_nha_hang")
+}
+
+model nguoi_dung {
+  id            Int                 @id @default(autoincrement())
+  email         String              @unique(map: "email") @db.VarChar(100)
+  mat_khau      String              @db.VarChar(255)
+  ten           String              @db.VarChar(100)
+  so_dien_thoai String              @unique(map: "so_dien_thoai") @db.VarChar(15)
+  vai_tro       nguoi_dung_vai_tro? @default(USER)
+  ngay_tao      DateTime?           @default(now()) @db.Timestamp(0)
+  danh_gia      danh_gia[]
+  dia_chi       dia_chi[]
+  don_hang      don_hang[]
+  gio_hang      gio_hang[]
+}
+
+model nha_hang {
+  id                   Int                  @id @default(autoincrement())
+  ten                  String               @db.VarChar(255)
+  so_dien_thoai        String               @unique(map: "so_dien_thoai") @db.VarChar(15)
+  dia_chi              String               @db.Text
+  anh_quan             String               @db.VarChar(255)
+  giay_phep_kinh_doanh String?              @db.VarChar(255)
+  anh_cccd             String               @db.VarChar(255)
+  anh_vstp             String?              @db.VarChar(255)
+  so_tai_khoan         String               @db.VarChar(50)
+  ten_ngan_hang        String               @db.VarChar(100)
+  trang_thai           nha_hang_trang_thai? @default(CHO_DUYET)
+  is_active            Boolean?             @default(true)
+  ngay_tao             DateTime?            @default(now()) @db.Timestamp(0)
+  danh_gia             danh_gia[]
+  don_hang             don_hang[]
+  mon_an               mon_an[]
+}
+
+model shipper {
+  id             Int                 @id @default(autoincrement())
+  ten            String              @db.VarChar(100)
+  so_dien_thoai  String              @unique(map: "so_dien_thoai") @db.VarChar(15)
+  anh_cccd       String              @db.VarChar(255)
+  anh_bang_lai   String              @db.VarChar(255)
+  anh_ca_vet_xe  String              @db.VarChar(255)
+  anh_bien_so_xe String              @db.VarChar(255)
+  so_tai_khoan   String              @db.VarChar(50)
+  ten_ngan_hang  String              @db.VarChar(100)
+  trang_thai     shipper_trang_thai? @default(CHO_DUYET)
+  is_active      Boolean?            @default(true)
+  ngay_tao       DateTime?           @default(now()) @db.Timestamp(0)
+  don_hang       don_hang[]
+}
+
+model thanh_toan {
+  id          Int                    @id @default(autoincrement())
+  don_hang_id Int
+  so_tien     Decimal                @db.Decimal(12, 2)
+  trang_thai  thanh_toan_trang_thai? @default(CHO_THANH_TOAN)
+  don_hang    don_hang               @relation(fields: [don_hang_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "thanh_toan_ibfk_1")
+
+  @@index([don_hang_id], map: "don_hang_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model vi_tien {
+  id            Int          @id @default(autoincrement())
+  loai          vi_tien_loai
+  chu_so_huu_id Int
+  so_du         Decimal?     @default(0.00) @db.Decimal(12, 2)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model voucher {
+  id           Int        @id @default(autoincrement())
+  ma           String     @unique(map: "ma") @db.VarChar(50)
+  giam_gia     Decimal    @db.Decimal(10, 2)
+  ngay_het_han DateTime   @db.DateTime(0)
+  don_hang     don_hang[]
+}
+
+enum giao_dich_loai_doi_tuong {
+  USER
+  SHIPPER
+  NHA_HANG
+}
+
+enum vi_tien_loai {
+  USER
+  SHIPPER
+  NHA_HANG
+}
+
+enum thanh_toan_trang_thai {
+  CHO_THANH_TOAN
+  THANH_CONG
+  THAT_BAI
+}
+
+enum giao_dich_loai {
+  NAP_TIEN
+  RUT_TIEN
+  THANH_TOAN
+}
+
+enum nguoi_dung_vai_tro {
+  USER
+  ADMIN
+}
+
+enum don_hang_phuong_thuc_thanh_toan {
+  TIEN_MAT
+  VNPAY
+}
+
+enum don_hang_trang_thai {
+  DA_TAO
+  NHA_HANG_XAC_NHAN
+  DA_GAN_SHIPPER
+  DANG_LAY_HANG
+  DANG_GIAO
+  HOAN_THANH
+  DA_HUY
+}
+
+enum shipper_trang_thai {
+  CHO_DUYET
+  HOAT_DONG
+  BI_KHOA
+}
+
+enum nha_hang_trang_thai {
+  CHO_DUYET
+  DA_DUYET
+  TU_CHOI
+}

@@ -1,52 +1,85 @@
 const jwt = require("jsonwebtoken");
-const AppError = require("../utils/appError");
 
-// Bộ trung gian xác thực JWT lấy từ header: Authorization: Bearer <token>.
-const verifyToken = (req, _res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader?.startsWith("Bearer ")) {
-    return next(new AppError("Thiếu token xác thực", 401));
-  }
-
-  const token = authHeader.split(" ")[1];
-
+/**
+ * Middleware xác thực JWT từ header Authorization
+ * Lấy token dạng: Authorization: Bearer <token>
+ * Giải mã và đính kèm user vào req.user
+ */
+const authenticate = (req, res, next) => {
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET || "dev_jwt_secret");
+    const authHeader = req.headers.authorization;
 
-    // Chuẩn hóa thông tin người dùng để controller/service dùng thống nhất 1 format.
-    req.user = {
-      id: payload.id || payload.userId || payload.sub,
-      vai_tro: payload.vai_tro || payload.role || "USER",
-      email: payload.email,
-    };
-
-    if (!req.user.id) {
-      throw new AppError("Token không hợp lệ", 401);
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Không tìm thấy token xác thực"
+      });
     }
 
-    return next();
-  } catch {
-    return next(new AppError("Token không hợp lệ hoặc đã hết hạn", 401));
+    const token = authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Token không hợp lệ"
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    req.user = {
+      id: decoded.id,
+      email: decoded.email,
+      vai_tro: decoded.vai_tro,
+      loai_tai_khoan: decoded.loai_tai_khoan
+    };
+
+    next();
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Token đã hết hạn"
+      });
+    }
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        success: false,
+        message: "Token không hợp lệ"
+      });
+    }
+    return res.status(401).json({
+      success: false,
+      message: "Xác thực thất bại"
+    });
   }
 };
 
-// Bộ trung gian kiểm tra vai trò (role) để đảm bảo phân quyền đúng theo spec.
-const requireRoles = (...roles) => {
-  return (req, _res, next) => {
+/**
+ * Middleware kiểm tra quyền truy cập theo vai trò
+ * @param {...string} allowedRoles - Danh sách vai trò được phép
+ */
+const authorize = (...allowedRoles) => {
+  return (req, res, next) => {
     if (!req.user) {
-      return next(new AppError("Chưa xác thực người dùng", 401));
+      return res.status(401).json({
+        success: false,
+        message: "Chưa xác thực người dùng"
+      });
     }
 
-    if (!roles.includes(req.user.vai_tro)) {
-      return next(new AppError("Bạn không có quyền truy cập", 403));
+    if (!allowedRoles.includes(req.user.vai_tro)) {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn không có quyền thực hiện thao tác này"
+      });
     }
 
-    return next();
+    next();
   };
 };
 
 module.exports = {
-  verifyToken,
-  requireRoles,
+  authenticate,
+  authorize
 };

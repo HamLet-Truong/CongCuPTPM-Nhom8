@@ -3,6 +3,8 @@ const router = express.Router();
 
 // Import routes modules
 const { authRoutes } = require("../modules/auth");
+const { userRoutes } = require("../modules/user");
+const { addressRoutes } = require("../modules/address");
 const restaurantRoutes = require("../modules/restaurant/restaurant.routes");
 const { foodRoutes } = require("../modules/food");
 const reviewRoutes = require("../modules/review/review.routes");
@@ -17,6 +19,9 @@ router.get("/health", (req, res) => {
 
 // Mount routes
 router.use("/v1/auth", authRoutes);
+router.use("/v1/users", userRoutes);
+router.use("/v1/addresses", addressRoutes);
+
 // Restaurants (public + admin)
 router.use("/v1", restaurantRoutes);
 router.use("/v1/foods", foodRoutes);

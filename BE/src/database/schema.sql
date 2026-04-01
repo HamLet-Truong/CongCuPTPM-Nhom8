@@ -12,8 +12,9 @@ CREATE TABLE nguoi_dung (
     email VARCHAR(100) NOT NULL UNIQUE,
     mat_khau VARCHAR(255) NOT NULL,
     ten VARCHAR(100) NOT NULL,
-    so_dien_thoai VARCHAR(15) NOT NULL UNIQUE,
-    vai_tro ENUM('USER','ADMIN') DEFAULT 'USER',
+    so_dien_thoai VARCHAR(15) UNIQUE,
+    vai_tro ENUM('USER','ADMIN','NHA_HANG','SHIPPER') DEFAULT 'USER',
+    is_active BOOLEAN DEFAULT 1,
     ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -33,6 +34,7 @@ CREATE TABLE dia_chi (
 -- =========================
 CREATE TABLE nha_hang (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    tai_khoan_id INT NOT NULL UNIQUE,
     ten VARCHAR(255) NOT NULL,
     so_dien_thoai VARCHAR(15) NOT NULL UNIQUE,
     dia_chi TEXT NOT NULL,
@@ -48,7 +50,9 @@ CREATE TABLE nha_hang (
     trang_thai ENUM('CHO_DUYET','DA_DUYET','TU_CHOI') DEFAULT 'CHO_DUYET',
     is_active BOOLEAN DEFAULT 1,
 
-    ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (tai_khoan_id) REFERENCES nguoi_dung(id) ON DELETE CASCADE
 );
 
 -- =========================
@@ -57,7 +61,10 @@ CREATE TABLE nha_hang (
 CREATE TABLE mon_an (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ten VARCHAR(255) NOT NULL,
+    mo_ta TEXT,
     gia DECIMAL(10,2) NOT NULL,
+    hinh_anh VARCHAR(500),
+    trang_thai ENUM('CON_HANG','HET_HANG') DEFAULT 'CON_HANG',
     nha_hang_id INT NOT NULL,
 
     CHECK (gia >= 0),
@@ -66,10 +73,11 @@ CREATE TABLE mon_an (
 );
 
 -- =========================
--- 5. SHIPPER
+-- 4. SHIPPER
 -- =========================
 CREATE TABLE shipper (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    tai_khoan_id INT NOT NULL UNIQUE,
     ten VARCHAR(100) NOT NULL,
     so_dien_thoai VARCHAR(15) NOT NULL UNIQUE,
 
@@ -84,7 +92,9 @@ CREATE TABLE shipper (
     trang_thai ENUM('CHO_DUYET','HOAT_DONG','BI_KHOA') DEFAULT 'CHO_DUYET',
     is_active BOOLEAN DEFAULT 1,
 
-    ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (tai_khoan_id) REFERENCES nguoi_dung(id) ON DELETE CASCADE
 );
 
 -- =========================
@@ -109,7 +119,11 @@ CREATE TABLE gio_hang (
 CREATE TABLE voucher (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ma VARCHAR(50) NOT NULL UNIQUE,
+    loai_giam ENUM('TIEN','PHAN_TRAM') NOT NULL,
     giam_gia DECIMAL(10,2) NOT NULL,
+    don_toi_thieu DECIMAL(10,2) DEFAULT 0,
+    so_luong INT DEFAULT 0,
+    ngay_bat_dau DATETIME NOT NULL,
     ngay_het_han DATETIME NOT NULL,
 
     CHECK (giam_gia >= 0)
@@ -138,6 +152,8 @@ CREATE TABLE don_hang (
         'HOAN_THANH',
         'DA_HUY'
     ) DEFAULT 'DA_TAO',
+
+    ghi_chu TEXT,
 
     ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -174,8 +190,9 @@ CREATE TABLE thanh_toan (
     id INT AUTO_INCREMENT PRIMARY KEY,
     don_hang_id INT NOT NULL,
     so_tien DECIMAL(12,2) NOT NULL,
-
     trang_thai ENUM('CHO_THANH_TOAN','THANH_CONG','THAT_BAI') DEFAULT 'CHO_THANH_TOAN',
+    ma_giao_dich VARCHAR(100),
+    phuong_thuc VARCHAR(50),
 
     FOREIGN KEY (don_hang_id) REFERENCES don_hang(id) ON DELETE CASCADE
 );
@@ -201,6 +218,7 @@ CREATE TABLE giao_dich (
     chu_so_huu_id INT NOT NULL,
     so_tien DECIMAL(12,2) NOT NULL,
     loai ENUM('NAP_TIEN','RUT_TIEN','THANH_TOAN') NOT NULL,
+    trang_thai ENUM('CHO_DUYET','DA_DUYET','TU_CHOI') DEFAULT 'DA_DUYET',
     ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -229,3 +247,5 @@ CREATE TABLE danh_gia (
 CREATE INDEX idx_don_hang_user ON don_hang(nguoi_dung_id);
 CREATE INDEX idx_don_hang_shipper ON don_hang(shipper_id);
 CREATE INDEX idx_mon_an_nha_hang ON mon_an(nha_hang_id);
+
+

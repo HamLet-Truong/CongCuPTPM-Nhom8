@@ -26,7 +26,10 @@ class FoodRepository {
     return await prisma.mon_an.create({
       data: {
         ten: data.ten,
+        mo_ta: data.mo_ta || null,
         gia: data.gia,
+        hinh_anh: data.hinh_anh || null,
+        trang_thai: data.trang_thai || "CON_HANG",
         nha_hang: {
           connect: { id: Number(data.nha_hang_id) }
         }
@@ -35,12 +38,17 @@ class FoodRepository {
   }
 
   async update(id, data) {
+    const updateData = {};
+
+    if (data.ten !== undefined) updateData.ten = data.ten;
+    if (data.mo_ta !== undefined) updateData.mo_ta = data.mo_ta;
+    if (data.gia !== undefined) updateData.gia = data.gia;
+    if (data.hinh_anh !== undefined) updateData.hinh_anh = data.hinh_anh;
+    if (data.trang_thai !== undefined) updateData.trang_thai = data.trang_thai;
+
     return await prisma.mon_an.update({
       where: { id: Number(id) },
-      data: {
-        ten: data.ten,
-        gia: data.gia
-      }
+      data: updateData
     });
   }
 

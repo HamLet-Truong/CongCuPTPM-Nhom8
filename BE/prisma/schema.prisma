@@ -60,6 +60,7 @@ model don_hang {
   tong_tien              Decimal                         @db.Decimal(12, 2)
   phuong_thuc_thanh_toan don_hang_phuong_thuc_thanh_toan
   trang_thai             don_hang_trang_thai?            @default(DA_TAO)
+  ghi_chu                String?                         @db.Text
   ngay_tao               DateTime?                       @default(now()) @db.Timestamp(0)
   chi_tiet_don_hang      chi_tiet_don_hang[]
   danh_gia               danh_gia[]
@@ -83,7 +84,14 @@ model giao_dich {
   chu_so_huu_id  Int
   so_tien        Decimal                  @db.Decimal(12, 2)
   loai           giao_dich_loai
-  ngay_tao       DateTime?                @default(now()) @db.Timestamp(0)
+  trang_thai     giao_dich_trang_thai?   @default(DA_DUYET)
+  ngay_tao       DateTime?               @default(now()) @db.Timestamp(0)
+}
+
+enum giao_dich_trang_thai {
+  CHO_DUYET
+  DA_DUYET
+  TU_CHOI
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -103,7 +111,10 @@ model gio_hang {
 model mon_an {
   id                Int                 @id @default(autoincrement())
   ten               String              @db.VarChar(255)
+  mo_ta             String?             @db.Text
   gia               Decimal             @db.Decimal(10, 2)
+  hinh_anh          String?             @db.VarChar(500)
+  trang_thai        mon_an_trang_thai?  @default(CON_HANG)
   nha_hang_id       Int
   chi_tiet_don_hang chi_tiet_don_hang[]
   gio_hang          gio_hang[]
@@ -117,17 +128,21 @@ model nguoi_dung {
   email         String              @unique(map: "email") @db.VarChar(100)
   mat_khau      String              @db.VarChar(255)
   ten           String              @db.VarChar(100)
-  so_dien_thoai String              @unique(map: "so_dien_thoai") @db.VarChar(15)
+  so_dien_thoai String?             @unique(map: "so_dien_thoai") @db.VarChar(15)
   vai_tro       nguoi_dung_vai_tro? @default(USER)
+  is_active     Boolean?            @default(true)
   ngay_tao      DateTime?           @default(now()) @db.Timestamp(0)
   danh_gia      danh_gia[]
   dia_chi       dia_chi[]
   don_hang      don_hang[]
   gio_hang      gio_hang[]
+  nha_hang      nha_hang?
+  shipper       shipper?
 }
 
 model nha_hang {
   id                   Int                  @id @default(autoincrement())
+  tai_khoan_id         Int                  @unique(map: "tai_khoan_id")
   ten                  String               @db.VarChar(255)
   so_dien_thoai        String               @unique(map: "so_dien_thoai") @db.VarChar(15)
   dia_chi              String               @db.Text
@@ -143,10 +158,12 @@ model nha_hang {
   danh_gia             danh_gia[]
   don_hang             don_hang[]
   mon_an               mon_an[]
+  tai_khoan            nguoi_dung           @relation(fields: [tai_khoan_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "nha_hang_ibfk_1")
 }
 
 model shipper {
   id             Int                 @id @default(autoincrement())
+  tai_khoan_id   Int                 @unique(map: "tai_khoan_id")
   ten            String              @db.VarChar(100)
   so_dien_thoai  String              @unique(map: "so_dien_thoai") @db.VarChar(15)
   anh_cccd       String              @db.VarChar(255)
@@ -159,14 +176,17 @@ model shipper {
   is_active      Boolean?            @default(true)
   ngay_tao       DateTime?           @default(now()) @db.Timestamp(0)
   don_hang       don_hang[]
+  tai_khoan      nguoi_dung          @relation(fields: [tai_khoan_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "shipper_ibfk_1")
 }
 
 model thanh_toan {
-  id          Int                    @id @default(autoincrement())
-  don_hang_id Int
-  so_tien     Decimal                @db.Decimal(12, 2)
-  trang_thai  thanh_toan_trang_thai? @default(CHO_THANH_TOAN)
-  don_hang    don_hang               @relation(fields: [don_hang_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "thanh_toan_ibfk_1")
+  id             Int                    @id @default(autoincrement())
+  don_hang_id    Int
+  so_tien        Decimal                @db.Decimal(12, 2)
+  trang_thai     thanh_toan_trang_thai? @default(CHO_THANH_TOAN)
+  ma_giao_dich   String?               @db.VarChar(100)
+  phuong_thuc    String?               @db.VarChar(50)
+  don_hang       don_hang              @relation(fields: [don_hang_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "thanh_toan_ibfk_1")
 
   @@index([don_hang_id], map: "don_hang_id")
 }
@@ -181,11 +201,25 @@ model vi_tien {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model voucher {
-  id           Int        @id @default(autoincrement())
-  ma           String     @unique(map: "ma") @db.VarChar(50)
-  giam_gia     Decimal    @db.Decimal(10, 2)
-  ngay_het_han DateTime   @db.DateTime(0)
-  don_hang     don_hang[]
+  id            Int               @id @default(autoincrement())
+  ma            String            @unique(map: "ma") @db.VarChar(50)
+  loai_giam     voucher_loai_giam
+  giam_gia      Decimal           @db.Decimal(10, 2)
+  don_toi_thieu Decimal?          @default(0.00) @db.Decimal(10, 2)
+  so_luong      Int?              @default(0)
+  ngay_bat_dau  DateTime          @db.DateTime(0)
+  ngay_het_han  DateTime          @db.DateTime(0)
+  don_hang      don_hang[]
+}
+
+enum mon_an_trang_thai {
+  CON_HANG
+  HET_HANG
+}
+
+enum voucher_loai_giam {
+  TIEN
+  PHAN_TRAM
 }
 
 enum giao_dich_loai_doi_tuong {
@@ -215,6 +249,8 @@ enum giao_dich_loai {
 enum nguoi_dung_vai_tro {
   USER
   ADMIN
+  NHA_HANG
+  SHIPPER
 }
 
 enum don_hang_phuong_thuc_thanh_toan {

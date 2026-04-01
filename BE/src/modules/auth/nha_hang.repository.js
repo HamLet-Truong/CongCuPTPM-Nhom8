@@ -10,6 +10,7 @@ class NhaHangRepository {
   async create(data) {
     return await prisma.nha_hang.create({
       data: {
+        tai_khoan_id: data.taiKhoanId,
         ten: data.ten,
         so_dien_thoai: data.soDienThoai,
         dia_chi: data.diaChi,
@@ -28,6 +29,12 @@ class NhaHangRepository {
   async findById(id) {
     return await prisma.nha_hang.findUnique({
       where: { id }
+    });
+  }
+
+  async findByTaiKhoanId(taiKhoanId) {
+    return await prisma.nha_hang.findUnique({
+      where: { tai_khoan_id: taiKhoanId }
     });
   }
 

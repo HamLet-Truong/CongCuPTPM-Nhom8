@@ -10,6 +10,7 @@ class ShipperRepository {
   async create(data) {
     return await prisma.shipper.create({
       data: {
+        tai_khoan_id: data.taiKhoanId,
         ten: data.ten,
         so_dien_thoai: data.soDienThoai,
         anh_cccd: data.anhCccd,
@@ -27,6 +28,12 @@ class ShipperRepository {
   async findById(id) {
     return await prisma.shipper.findUnique({
       where: { id }
+    });
+  }
+
+  async findByTaiKhoanId(taiKhoanId) {
+    return await prisma.shipper.findUnique({
+      where: { tai_khoan_id: taiKhoanId }
     });
   }
 }

@@ -111,7 +111,7 @@ class AuthService {
         id: user.id,
         email: user.email,
         vai_tro: user.vai_tro,
-        loai_tai_khoan: "USER"
+        loai_tai_khoan: user.vai_tro
       },
       process.env.JWT_SECRET || "your-secret-key",
       { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
@@ -123,7 +123,8 @@ class AuthService {
         id: user.id,
         email: user.email,
         ten: user.ten,
-        vai_tro: user.vai_tro
+        vai_tro: user.vai_tro,
+        loai_tai_khoan: user.vai_tro
       }
     };
   }
@@ -156,7 +157,7 @@ class AuthService {
   }
 
   async getNhaHangById(id) {
-    const restaurant = await nhaHangRepository.findById(id);
+    const restaurant = await nhaHangRepository.findByTaiKhoanId(id);
     if (!restaurant) {
       const error = new Error("Không tìm thấy nhà hàng");
       error.status = 404;
@@ -166,7 +167,7 @@ class AuthService {
   }
 
   async getShipperById(id) {
-    const shipper = await shipperRepository.findById(id);
+    const shipper = await shipperRepository.findByTaiKhoanId(id);
     if (!shipper) {
       const error = new Error("Không tìm thấy shipper");
       error.status = 404;
@@ -178,7 +179,7 @@ class AuthService {
   // ===================== NHA HANG =====================
 
   async registerRestaurant(data) {
-    const requiredFields = ["ten", "so_dien_thoai", "dia_chi", "anh_quan", "anh_cccd", "so_tai_khoan", "ten_ngan_hang"];
+    const requiredFields = ["email", "password", "ten", "so_dien_thoai", "dia_chi", "anh_quan", "anh_cccd", "so_tai_khoan", "ten_ngan_hang"];
 
     for (const field of requiredFields) {
       if (!data[field]) {
@@ -186,6 +187,26 @@ class AuthService {
         error.status = 400;
         throw error;
       }
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      const error = new Error("Email không hợp lệ");
+      error.status = 400;
+      throw error;
+    }
+
+    if (data.password.length < 6) {
+      const error = new Error("Mật khẩu phải có ít nhất 6 ký tự");
+      error.status = 400;
+      throw error;
+    }
+
+    const existingEmail = await authRepository.findByEmail(data.email);
+    if (existingEmail) {
+      const error = new Error("Email đã được sử dụng");
+      error.status = 409;
+      throw error;
     }
 
     if (data.so_dien_thoai) {
@@ -197,7 +218,19 @@ class AuthService {
       }
     }
 
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    // Tạo tài khoản trong nguoi_dung với vai trò NHA_HANG
+    const userAccount = await authRepository.create({
+      email: data.email,
+      matKhau: hashedPassword,
+      ten: data.ten,
+      vaiTro: "NHA_HANG"
+    });
+
+    // Tạo thông tin nhà hàng và liên kết với tài khoản
     const newRestaurant = await nhaHangRepository.create({
+      taiKhoanId: userAccount.id,
       ten: data.ten,
       soDienThoai: data.so_dien_thoai,
       diaChi: data.dia_chi,
@@ -210,14 +243,18 @@ class AuthService {
     });
 
     return {
-      restaurant: newRestaurant
+      restaurant: newRestaurant,
+      account: {
+        id: userAccount.id,
+        email: userAccount.email
+      }
     };
   }
 
   // ===================== SHIPPER =====================
 
   async registerShipper(data) {
-    const requiredFields = ["ten", "so_dien_thoai", "anh_cccd", "anh_bang_lai", "anh_ca_vet_xe", "anh_bien_so_xe", "so_tai_khoan", "ten_ngan_hang"];
+    const requiredFields = ["email", "password", "ten", "so_dien_thoai", "anh_cccd", "anh_bang_lai", "anh_ca_vet_xe", "anh_bien_so_xe", "so_tai_khoan", "ten_ngan_hang"];
 
     for (const field of requiredFields) {
       if (!data[field]) {
@@ -225,6 +262,26 @@ class AuthService {
         error.status = 400;
         throw error;
       }
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      const error = new Error("Email không hợp lệ");
+      error.status = 400;
+      throw error;
+    }
+
+    if (data.password.length < 6) {
+      const error = new Error("Mật khẩu phải có ít nhất 6 ký tự");
+      error.status = 400;
+      throw error;
+    }
+
+    const existingEmail = await authRepository.findByEmail(data.email);
+    if (existingEmail) {
+      const error = new Error("Email đã được sử dụng");
+      error.status = 409;
+      throw error;
     }
 
     if (data.so_dien_thoai) {
@@ -236,7 +293,19 @@ class AuthService {
       }
     }
 
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    // Tạo tài khoản trong nguoi_dung với vai trò SHIPPER
+    const userAccount = await authRepository.create({
+      email: data.email,
+      matKhau: hashedPassword,
+      ten: data.ten,
+      vaiTro: "SHIPPER"
+    });
+
+    // Tạo thông tin shipper và liên kết với tài khoản
     const newShipper = await shipperRepository.create({
+      taiKhoanId: userAccount.id,
       ten: data.ten,
       soDienThoai: data.so_dien_thoai,
       anhCccd: data.anh_cccd,
@@ -248,7 +317,11 @@ class AuthService {
     });
 
     return {
-      shipper: newShipper
+      shipper: newShipper,
+      account: {
+        id: userAccount.id,
+        email: userAccount.email
+      }
     };
   }
 }

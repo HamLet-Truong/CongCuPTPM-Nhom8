@@ -8,21 +8,31 @@ class FoodService {
       "string.empty": "Tên món ăn không được để trống",
       "any.required": "Tên món ăn là bắt buộc"
     }),
-    gia: Joi.number().positive().required().messages({
+    mo_ta: Joi.string().allow("", null).optional(),
+    gia: Joi.number().min(0).required().messages({
       "number.base": "Giá phải là số",
-      "number.positive": "Giá phải lớn hơn 0",
+      "number.min": "Giá không được nhỏ hơn 0",
       "any.required": "Giá là bắt buộc"
-    })
+    }),
+    hinh_anh: Joi.string().uri().allow("", null).optional().messages({
+      "string.uri": "Hình ảnh phải là URL hợp lệ"
+    }),
+    trang_thai: Joi.string().valid("CON_HANG", "HET_HANG").optional()
   });
 
   updateFoodSchema = Joi.object({
     ten: Joi.string().messages({
       "string.empty": "Tên món ăn không được để trống"
     }),
-    gia: Joi.number().positive().messages({
+    mo_ta: Joi.string().allow("", null).optional(),
+    gia: Joi.number().min(0).messages({
       "number.base": "Giá phải là số",
-      "number.positive": "Giá phải lớn hơn 0"
-    })
+      "number.min": "Giá không được nhỏ hơn 0"
+    }),
+    hinh_anh: Joi.string().uri().allow("", null).optional().messages({
+      "string.uri": "Hình ảnh phải là URL hợp lệ"
+    }),
+    trang_thai: Joi.string().valid("CON_HANG", "HET_HANG").optional()
   }).min(1).messages({
     "object.min": "Phải cập nhật ít nhất một trường"
   });
